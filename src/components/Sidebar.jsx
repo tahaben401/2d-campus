@@ -2,7 +2,7 @@
 
 import { HomeIcon, ChartIcon, LogoutIcon, BuildingIcon } from './icons'; 
 
-const Sidebar = ({ activeView, setActiveView }) => {
+const Sidebar = ({ activeView, setActiveView,onLogout }) => {
   return (
     
     <aside className="w-72 bg-slate-50/70 p-6 flex-shrink-0 flex flex-col justify-between backdrop-blur-sm border-r border-slate-200 dark:bg-slate-950/70 dark:border-slate-800">
@@ -53,7 +53,7 @@ const Sidebar = ({ activeView, setActiveView }) => {
       </div>
 
      
-      <button className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-200/50 rounded-lg transition-colors duration-200 w-full dark:text-slate-400 dark:hover:bg-slate-800/50">
+      <button className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-200/50 rounded-lg transition-colors duration-200 w-full dark:text-slate-400 dark:hover:bg-slate-800/50" onClick={onLogout}>
         <LogoutIcon className="w-5 h-5" />
         <span>Déconnexion</span>
       </button>

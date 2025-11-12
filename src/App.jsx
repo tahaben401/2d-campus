@@ -9,6 +9,7 @@ import Signup from './pages/sigup'
 import { mockBuildings } from './data/mockData';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import axios from "axios";
+import { toast,Toaster } from 'sonner';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -36,11 +37,14 @@ function App() {
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));
         console.log("✅ Logged in:", res.data.message);
+        toast.success('Logged in!');
       } else {
         console.error("❌", res.data.message);
+        toast.error('Something went wrong!');
       }
     } catch (err) {
       console.error("❌ Login failed:", err.response?.data?.message || err.message);
+      toast.error('Something went wrong!');
     }
   };
   
@@ -60,26 +64,39 @@ function App() {
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));
         console.log("✅ Registered:", res.data.message);
+        toast.success("Registered")
       } else {
         console.error("❌", res.data.message);
+        toast.error('Something went wrong!');
       }
     } catch (err) {
       console.error("❌ Signup failed:", err.response?.data?.message || err.message);
+      toast.error('Something went wrong!');
     }
   };
   
   
 
   // ✅ Logout handler
-  const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+  const handleLogout = async () => {
+    try {
+      await axios.post("http://localhost:3000/api/v1/auth/logout", {}, { withCredentials: true });
+      localStorage.removeItem("user");
+      setUser(null);
+      toast.success("Logged out")
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 1500);
+      
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   // Main app layout (shown after login)
   const MainApp = () => (
     <div className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-300 font-sans flex h-screen overflow-hidden antialiased">
-      <Sidebar activeView={activeView} setActiveView={setActiveView} />
+      <Sidebar activeView={activeView} setActiveView={setActiveView} onLogout={handleLogout} />
 
       <main className="flex-1 flex flex-col p-8 overflow-y-auto">
         <Header
@@ -87,12 +104,7 @@ function App() {
           setSelectedBuilding={setSelectedBuilding}
           setSelectedFloor={setSelectedFloor}
         />
-        <button
-          onClick={handleLogout}
-          className="self-end mb-4 bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition"
-        >
-          Déconnexion
-        </button>
+    
 
         {activeView === 'home' ? (
           <CampusMapView
@@ -113,6 +125,15 @@ function App() {
 
   return (
     <ThemeProvider>
+           <Toaster 
+        position="top-center"
+        expand={false}
+        richColors
+        closeButton
+        duration={4000}
+        offset={16}
+        visibleToasts={3}
+      />
       <Router>
         <Routes>
           {!user ? (

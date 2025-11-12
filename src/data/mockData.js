@@ -1,16 +1,16 @@
 // hna c'est l'exemple des donnee utiliser 
 export const mockStats = {
-    totalRooms: 450,
-    occupancyRate: 82,
-    availableBeds: 81,
-    ongoingReservations: 369,
+    totalRooms: null,
+    occupancyRate: null,
+    availableBeds: null,
+    ongoingReservations: null,
   };
   
   export const mockBuildings = [
-    { id: 'A', name: 'Bloc A - Sciences', floors: 5 },
-    { id: 'B', name: 'Bloc B - Arts & Lettres', floors: 3 },
-    { id: 'C', name: 'Bloc C - Ingénierie', floors: 7 },
-    {id:'D',name:'Bloc D-Ismail allouch',floors:2},
+    { id: 'A', name: 'A', floors: 3 },
+    { id: 'B', name: 'B', floors: 3 },
+    { id: 'C', name: 'C', floors: 3 },
+    {id:'D',name:'D',floors:3},
   ];
   
   export const mockExampleRooms = [
