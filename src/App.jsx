@@ -4,12 +4,13 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import CampusMapView from './components/CampusMapView';
 import StatisticsDashboard from './components/StatisticsDashboard';
+import Chatbot from './components/chatbot'; // ✅ Import du chatbot
 import Login from './pages/login';
-import Signup from './pages/sigup'
+import Signup from './pages/sigup';
 import { mockBuildings } from './data/mockData';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import axios from "axios";
-import { toast,Toaster } from 'sonner';
+import { toast, Toaster } from 'sonner';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -17,13 +18,13 @@ function App() {
   const [selectedFloor, setSelectedFloor] = useState(1);
   const [activeView, setActiveView] = useState('home');
 
-  // ✅ Load user from localStorage (persist login)
+ 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) setUser(JSON.parse(savedUser));
   }, []);
 
-  // ✅ Login handler
+ 
   const handleLogin = async (email, password) => {
     try {
       const res = await axios.post(
@@ -37,87 +38,95 @@ function App() {
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));
         console.log("✅ Logged in:", res.data.message);
-        toast.success('Logged in!');
+        toast.success('Connecté avec succès !');
       } else {
         console.error("❌", res.data.message);
-        toast.error('Something went wrong!');
+        toast.error('Erreur de connexion !');
       }
     } catch (err) {
-      console.error("❌ Login failed:", err.response?.data?.message || err.message);
-      toast.error('Something went wrong!');
+      console.error(" Login failed:", err.response?.data?.message || err.message);
+      toast.error('Identifiants incorrects !');
     }
   };
-  
-  
 
-  // ✅ Signup handler
+  
   const handleSignup = async (fullName, email, password) => {
     try {
       const res = await axios.post(
         "http://localhost:3000/api/v1/auth/register",
         { name: fullName, email, password },
-        { withCredentials: true } // ✅ allows cookies
+        { withCredentials: true }
       );
   
       if (res.data.status === 200) {
         const userData = { fullName, email };
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));
-        console.log("✅ Registered:", res.data.message);
-        toast.success("Registered")
+        console.log(" Registered:", res.data.message);
+        toast.success("Inscription réussie !");
       } else {
         console.error("❌", res.data.message);
-        toast.error('Something went wrong!');
+        toast.error('Erreur d\'inscription !');
       }
     } catch (err) {
-      console.error("❌ Signup failed:", err.response?.data?.message || err.message);
-      toast.error('Something went wrong!');
+      console.error(" Signup failed:", err.response?.data?.message || err.message);
+      toast.error('Erreur d\'inscription !');
     }
   };
-  
-  
 
-  // ✅ Logout handler
+ 
   const handleLogout = async () => {
     try {
       await axios.post("http://localhost:3000/api/v1/auth/logout", {}, { withCredentials: true });
       localStorage.removeItem("user");
       setUser(null);
-      toast.success("Logged out")
+      toast.success("Déconnecté avec succès !");
       setTimeout(() => {
         window.location.href = "/login";
       }, 1500);
-      
     } catch (error) {
       console.error("Logout failed:", error);
     }
   };
 
-  // Main app layout (shown after login)
+  
   const MainApp = () => (
     <div className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-300 font-sans flex h-screen overflow-hidden antialiased">
       <Sidebar activeView={activeView} setActiveView={setActiveView} onLogout={handleLogout} />
 
       <main className="flex-1 flex flex-col p-8 overflow-y-auto">
-        <Header
-          selectedBuilding={selectedBuilding}
-          setSelectedBuilding={setSelectedBuilding}
-          setSelectedFloor={setSelectedFloor}
-        />
-    
+        {/* Header - caché pour chatbot */}
+        {activeView !== 'chatbot' && (
+          <Header
+            selectedBuilding={selectedBuilding}
+            setSelectedBuilding={setSelectedBuilding}
+            setSelectedFloor={setSelectedFloor}
+          />
+        )}
 
-        {activeView === 'home' ? (
+        {/* Vue Accueil */}
+        {activeView === 'home' && (
           <CampusMapView
             selectedBuilding={selectedBuilding}
             selectedFloor={selectedFloor}
             setSelectedFloor={setSelectedFloor}
           />
-        ) : (
+        )}
+
+        {/* Vue Statistiques */}
+        {activeView === 'statistics' && (
           <StatisticsDashboard
             selectedBuilding={selectedBuilding}
             selectedFloor={selectedFloor}
             setSelectedFloor={setSelectedFloor}
           />
+        )}
+
+        {/* Vue Chatbot - sans padding */}
+        {activeView === 'chatbot' && (
+          <div className="-m-8 flex-1">
+            <Chatbot />
+          </div>
         )}
       </main>
     </div>
@@ -125,7 +134,7 @@ function App() {
 
   return (
     <ThemeProvider>
-           <Toaster 
+      <Toaster 
         position="top-center"
         expand={false}
         richColors
