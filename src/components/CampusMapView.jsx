@@ -7,13 +7,18 @@ import { roomStatusColors } from '../constants/roomStatus'; // optional, keep if
 const CampusMapView = ({ selectedBuilding, selectedFloor, setSelectedFloor }) => {
   const [zoom, setZoom] = useState(1);
   const [data, setData] = useState([]);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [popupPos, setPopupPos] = useState({ x: 0, y: 0 });
   const apiRoomByNumber = useMemo(() => {
     const map = {};
     data.forEach(r => {
-      map[Number(r.numero_chambre)] = r;
+      
+      if (r.batiment === selectedBuilding.name) {
+        map[Number(r.numero_chambre)] = r;
+      }
     });
     return map;
-  }, [data]);
+  }, [data, selectedBuilding.name]);
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -225,22 +230,66 @@ const CampusMapView = ({ selectedBuilding, selectedFloor, setSelectedFloor }) =>
 
             {/* Render rooms */}
             {numberedRooms.map(room => (
-              <Room
-                key={room.id}
-                roomKey={room.id}
-                roomNumber={room.roomNumber}
-                x={room.x}
-                y={room.y}
-                width={room.width}
-                height={room.height}
-                apiRoom={apiRoomByNumber[room.roomNumber]} // <-- THE IMPORTANT PART
-              />
+             <Room
+              key={room.id}
+              roomNumber={room.roomNumber}
+              x={room.x}
+              y={room.y}
+              width={room.width}
+              height={room.height}
+              apiRoom={apiRoomByNumber[room.roomNumber]}
+              onClick={(e) => {
+                setSelectedRoom(apiRoomByNumber[room.roomNumber]);
+                setPopupPos({ x: e.clientX, y: e.clientY });
+              }}
+            />
+           
             ))}
 
 
           </svg>
         </div>
       </div>
+      {selectedRoom && (
+  <div
+    className="
+      fixed z-50
+      bg-white shadow-xl
+      p-4 rounded-2xl
+      w-64
+      animate-fadeIn
+    "
+    style={{
+      left: popupPos.x + 12,
+      top: popupPos.y + 12
+    }}
+  >
+    <h3 className="font-bold text-xl mb-2 text-gray-800">
+      Chambre {selectedRoom.numero_chambre}
+    </h3>
+
+    <div className="space-y-1 text-sm text-gray-700">
+      <p><span className="font-semibold">État :</span> {selectedRoom.etat}</p>
+      <p><span className="font-semibold">Type : </span> {selectedRoom.type_chambre}</p>
+      <p><span className="font-semibold">Bâtiment :</span> {selectedRoom.batiment}</p>
+      <p><span className="font-semibold">etudiant :</span> {selectedRoom.etudiant_nom}</p>
+    </div>
+
+    <button
+      onClick={() => setSelectedRoom(null)}
+      className="
+        mt-4 w-full
+        px-3 py-2 rounded-xl
+        text-white bg-red-500 
+        hover:bg-red-600 transition
+      "
+    >
+      Fermer
+    </button>
+  </div>
+)}
+
+
     </div>
   );
 };
