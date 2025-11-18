@@ -242,6 +242,9 @@ const CampusMapView = ({ selectedBuilding, selectedFloor, setSelectedFloor }) =>
                 setSelectedRoom(apiRoomByNumber[room.roomNumber]);
                 setPopupPos({ x: e.clientX, y: e.clientY });
               }}
+        
+        
+
             />
            
             ))}
