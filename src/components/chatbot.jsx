@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
-import { Send, Bot, User, Loader2, Sparkles } from 'lucide-react';
+import { Send, Bot, User, Loader2, Sparkles, MessageSquare } from 'lucide-react';
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([
@@ -15,8 +15,8 @@ const Chatbot = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const textareaRef = useRef(null);
 
-  
   const suggestions = [
     "Combien de chambres sont disponibles ?",
     "Quelles chambres sont libres au bâtiment A ?",
@@ -24,16 +24,22 @@ const Chatbot = () => {
     "Quel est le taux d'occupation global ?"
   ];
 
-  // Auto-scroll vers le bas
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isLoading]);
 
-  
+  // Gestionnaire pour ajuster la hauteur du textarea automatiquement
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+    }
+  }, [inputValue]);
+
   const handleSendMessage = async (text = inputValue) => {
     if (!text.trim() || isLoading) return;
 
@@ -47,9 +53,12 @@ const Chatbot = () => {
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
+    
+    // Reset height
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
 
     try {
-      const response = await axios.post('http://localhost:8000/api/chat', {
+      const response = await axios.post('http://localhost:8001/api/chat', {
         question: text.trim()
       });
 
@@ -76,7 +85,8 @@ const Chatbot = () => {
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
-      inputRef.current?.focus();
+      inputRef.current?.focus(); // Note: inputRef n'est plus utilisé directement sur le textarea ici, mais on garde la logique
+      textareaRef.current?.focus();
     }
   };
 
@@ -95,132 +105,149 @@ const Chatbot = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      {/* Header */}
-      <div className="bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center">
-              <Bot className="w-6 h-6 text-white" />
+    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-slate-950 font-sans">
+      {/* Header avec effet Glassmorphism */}
+      <div className="absolute top-0 left-0 right-0 z-10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-6 py-4 shadow-sm">
+        <div className="flex items-center gap-4 max-w-4xl mx-auto">
+          <div className="relative group">
+            <div className="w-12 h-12 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:shadow-indigo-500/40 transition-all duration-300">
+              <Bot className="w-7 h-7 text-white transform group-hover:scale-110 transition-transform duration-300" />
             </div>
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-slate-950"></div>
+            <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 animate-pulse"></div>
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
               Assistant Logements
-              <Sparkles className="w-4 h-4 text-cyan-500" />
+              <Sparkles className="w-4 h-4 text-amber-400 fill-amber-400" />
             </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">En ligne • Réponse instantanée</p>
+            <p className="text-xs font-medium text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+              En ligne & prêt à vous aider
+            </p>
           </div>
         </div>
       </div>
 
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex gap-3 ${message.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
-          >
-            {/* Avatar */}
-            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-              message.type === 'bot'
-                ? 'bg-gradient-to-br from-cyan-500 to-blue-600'
-                : 'bg-gradient-to-br from-purple-500 to-pink-600'
-            }`}>
-              {message.type === 'bot' ? (
-                <Bot className="w-5 h-5 text-white" />
-              ) : (
-                <User className="w-5 h-5 text-white" />
-              )}
-            </div>
-
-            {/* Message Bubble */}
-            <div className={`flex flex-col max-w-[70%] ${message.type === 'user' ? 'items-end' : 'items-start'}`}>
-              <div className={`rounded-2xl px-4 py-3 ${
+      <div className="flex-1 overflow-y-auto pt-24 pb-4 px-4 sm:px-6 scroll-smooth">
+        <div className="max-w-4xl mx-auto space-y-6">
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex gap-4 ${message.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+            >
+              {/* Avatar */}
+              <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center shadow-sm ${
                 message.type === 'bot'
-                  ? message.isError 
-                    ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400'
-                    : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-md'
-                  : 'bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-md'
+                  ? 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700'
+                  : 'bg-indigo-600'
               }`}>
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.text}</p>
+                {message.type === 'bot' ? (
+                  <Bot className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                ) : (
+                  <User className="w-6 h-6 text-white" />
+                )}
               </div>
-              <span className="text-xs text-slate-400 dark:text-slate-500 mt-1 px-2">
-                {formatTime(message.timestamp)}
-              </span>
-            </div>
-          </div>
-        ))}
 
-        {/* Loading Indicator */}
-        {isLoading && (
-          <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
-              <Bot className="w-5 h-5 text-white" />
-            </div>
-            <div className="bg-white dark:bg-slate-800 rounded-2xl px-4 py-3 shadow-md">
-              <div className="flex gap-1">
-                <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              {/* Message Bubble */}
+              <div className={`flex flex-col max-w-[75%] ${message.type === 'user' ? 'items-end' : 'items-start'}`}>
+                <div className={`px-5 py-3.5 shadow-sm text-[15px] leading-relaxed ${
+                  message.type === 'bot'
+                    ? message.isError 
+                      ? 'bg-red-50 dark:bg-red-900/20 text-red-600 border border-red-100 dark:border-red-800 rounded-2xl rounded-tl-none'
+                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-100 dark:border-slate-700 rounded-2xl rounded-tl-none'
+                    : 'bg-indigo-600 text-white rounded-2xl rounded-tr-none shadow-indigo-500/20'
+                }`}>
+                  <p className="whitespace-pre-wrap">{message.text}</p>
+                </div>
+                <span className="text-[11px] font-medium text-slate-400 mt-1.5 px-1">
+                  {formatTime(message.timestamp)}
+                </span>
               </div>
             </div>
-          </div>
-        )}
+          ))}
 
-        <div ref={messagesEndRef} />
+          {/* Loading Indicator */}
+          {isLoading && (
+            <div className="flex gap-4">
+              <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center shadow-sm">
+                <Bot className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl rounded-tl-none px-5 py-4 shadow-sm flex items-center gap-1.5">
+                <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
-      {/* Suggestions (affichées uniquement s'il n'y a qu'un message) */}
-      {messages.length === 1 && (
-        <div className="px-6 pb-4">
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 font-semibold">Questions suggérées :</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {suggestions.map((suggestion, index) => (
-              <button
-                key={index}
-                onClick={() => handleSendMessage(suggestion)}
-                className="text-left text-sm px-4 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 dark:hover:border-cyan-500 transition-colors text-slate-700 dark:text-slate-300 hover:text-cyan-600 dark:hover:text-cyan-400"
-              >
-                {suggestion}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Footer Area */}
+      <div className="bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 px-4 py-4">
+        <div className="max-w-4xl mx-auto">
+          
+          {/* Suggestions */}
+          {messages.length === 1 && (
+            <div className="mb-4 animate-fade-in-up">
+              <div className="flex items-center gap-2 mb-3 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <MessageSquare className="w-3 h-3" />
+                Suggestions rapides
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {suggestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSendMessage(suggestion)}
+                    className="text-left text-sm px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 border border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-800 text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-400 transition-all duration-200 group"
+                  >
+                    <span className="group-hover:translate-x-1 transition-transform duration-200 inline-block">
+                      {suggestion}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
-      {/* Input Area */}
-      <div className="bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-6 py-4">
-        <div className="flex gap-3 items-end">
-          <div className="flex-1 relative">
+          {/* Input Bar Unifiée (Design Symétrique) */}
+          <div className="relative flex items-end gap-2 bg-slate-100 dark:bg-slate-900 p-2 rounded-3xl border border-transparent focus-within:border-indigo-300 dark:focus-within:border-indigo-700 focus-within:ring-4 focus-within:ring-indigo-100 dark:focus-within:ring-indigo-900/30 transition-all duration-300">
+            
             <textarea
-              ref={inputRef}
+              ref={textareaRef}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Posez votre question..."
+              placeholder="Posez votre question sur les logements..."
               rows="1"
               disabled={isLoading}
-              className="w-full px-4 py-3 pr-12 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 dark:focus:ring-cyan-400 resize-none text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 disabled:opacity-50"
-              style={{ maxHeight: '120px' }}
+              className="w-full max-h-[120px] py-3 px-4 bg-transparent border-none focus:ring-0 resize-none text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 text-[15px]"
             />
+
+            <button
+              onClick={() => handleSendMessage()}
+              disabled={!inputValue.trim() || isLoading}
+              className={`
+                flex-shrink-0 mb-1 mr-1 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300
+                ${!inputValue.trim() || isLoading 
+                  ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed' 
+                  : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg hover:scale-105 active:scale-95'}
+              `}
+            >
+              {isLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Send className={`w-5 h-5 ${inputValue.trim() ? 'ml-0.5' : ''}`} />
+              )}
+            </button>
           </div>
-          <button
-            onClick={() => handleSendMessage()}
-            disabled={!inputValue.trim() || isLoading}
-            className="px-5 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-xl hover:from-cyan-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 font-semibold"
-          >
-            {isLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
-          </button>
+          
+          <p className="text-[11px] text-slate-400 dark:text-slate-600 mt-3 text-center font-medium">
+            L'IA peut faire des erreurs. Vérifiez les informations importantes.
+          </p>
         </div>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 text-center">
-          Appuyez sur Entrée pour envoyer • Maj+Entrée pour une nouvelle ligne
-        </p>
       </div>
     </div>
   );

@@ -207,7 +207,7 @@ const StatisticsDashboard = ({ selectedBuilding, selectedFloor, setSelectedFloor
                     position: 'insideLeft',
                     style: { textAnchor: 'middle' }
                   }}
-                  domain={[0, 100]}
+                  domain={[0, 30]}
                   style={{ fontSize: '14px' }}
                 />
                 <Tooltip 
