@@ -18,13 +18,13 @@ function App() {
   const [selectedFloor, setSelectedFloor] = useState(1);
   const [activeView, setActiveView] = useState('home');
 
- 
+
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) setUser(JSON.parse(savedUser));
   }, []);
 
- 
+
   const handleLogin = async (email, password) => {
     try {
       const res = await axios.post(
@@ -32,7 +32,7 @@ function App() {
         { email, password },
         { withCredentials: true }
       );
-  
+
       if (res.data.status === 200) {
         const userData = { email };
         setUser(userData);
@@ -49,7 +49,7 @@ function App() {
     }
   };
 
-  
+
   const handleSignup = async (fullName, email, password) => {
     try {
       const res = await axios.post(
@@ -57,7 +57,7 @@ function App() {
         { name: fullName, email, password },
         { withCredentials: true }
       );
-  
+
       if (res.data.status === 200) {
         const userData = { fullName, email };
         setUser(userData);
@@ -74,7 +74,7 @@ function App() {
     }
   };
 
- 
+
   const handleLogout = async () => {
     try {
       await axios.post("http://localhost:3000/api/v1/auth/logout", {}, { withCredentials: true });
@@ -89,9 +89,9 @@ function App() {
     }
   };
 
-  
+
   const MainApp = () => (
-    <div className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-300 font-sans flex h-screen overflow-hidden antialiased">
+    <div className="bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 text-slate-800 dark:text-slate-300 font-sans flex h-screen overflow-hidden antialiased">
       <Sidebar activeView={activeView} setActiveView={setActiveView} onLogout={handleLogout} />
 
       <main className="flex-1 flex flex-col p-8 overflow-y-auto">
@@ -134,7 +134,7 @@ function App() {
 
   return (
     <ThemeProvider>
-      <Toaster 
+      <Toaster
         position="top-center"
         expand={false}
         richColors

@@ -1,27 +1,27 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
-import { Send, Bot, User, Loader2, Sparkles, MessageSquare } from 'lucide-react';
+import { Send, Bot, User, Loader2, Sparkles, MessageSquare, Zap, Building2, BedDouble, Users } from 'lucide-react';
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([
     {
       id: 1,
       type: 'bot',
-      text: "Bonjour ! Je suis votre assistant virtuel pour la gestion des logements. Comment puis-je vous aider aujourd'hui ?",
+      text: "Bonjour ! 👋 Je suis votre assistant virtuel CampusView. Je peux vous aider à gérer les logements, vérifier les disponibilités et répondre à vos questions. Comment puis-je vous aider aujourd'hui ?",
       timestamp: new Date()
     }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
-  const inputRef = useRef(null);
   const textareaRef = useRef(null);
 
   const suggestions = [
-    "Combien de chambres sont disponibles ?",
-    "Quelles chambres sont libres au bâtiment A ?",
-    "Qui occupe la chambre 102 ?",
-    "Quel est le taux d'occupation global ?"
+    { icon: BedDouble, text: "Combien de chambres sont disponibles ?" },
+    { icon: Building2, text: "Quelles chambres sont libres au bâtiment A ?" },
+    { icon: Users, text: "Qui occupe la chambre 102 ?" },
+    { icon: Zap, text: "Quel est le taux d'occupation global ?" }
   ];
 
   const scrollToBottom = () => {
@@ -32,7 +32,6 @@ const Chatbot = () => {
     scrollToBottom();
   }, [messages, isLoading]);
 
-  // Gestionnaire pour ajuster la hauteur du textarea automatiquement
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -53,14 +52,16 @@ const Chatbot = () => {
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
-    
-    // Reset height
+    setIsTyping(true);
+
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
 
     try {
       const response = await axios.post('http://localhost:8001/api/chat', {
         question: text.trim()
       });
+
+      setIsTyping(false);
 
       if (response.data.success) {
         const botMessage = {
@@ -75,6 +76,7 @@ const Chatbot = () => {
       }
     } catch (error) {
       console.error('Erreur:', error);
+      setIsTyping(false);
       const errorMessage = {
         id: Date.now() + 1,
         type: 'bot',
@@ -85,7 +87,6 @@ const Chatbot = () => {
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
-      inputRef.current?.focus(); // Note: inputRef n'est plus utilisé directement sur le textarea ici, mais on garde la logique
       textareaRef.current?.focus();
     }
   };
@@ -98,52 +99,74 @@ const Chatbot = () => {
   };
 
   const formatTime = (date) => {
-    return date.toLocaleTimeString('fr-FR', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return date.toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-slate-950 font-sans">
-      {/* Header avec effet Glassmorphism */}
-      <div className="absolute top-0 left-0 right-0 z-10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-6 py-4 shadow-sm">
+    <div className="flex-1 flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 font-sans relative overflow-hidden">
+
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
+        <div className="absolute bottom-40 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
+      </div>
+
+      {/* Header with solid background for dark mode */}
+      <div className="relative z-10 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 py-5">
         <div className="flex items-center gap-4 max-w-4xl mx-auto">
           <div className="relative group">
-            <div className="w-12 h-12 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:shadow-indigo-500/40 transition-all duration-300">
-              <Bot className="w-7 h-7 text-white transform group-hover:scale-110 transition-transform duration-300" />
+            {/* Glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500 to-purple-600 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity duration-500" />
+            <div className="relative w-14 h-14 bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl transform group-hover:scale-105 transition-all duration-300">
+              <Bot className="w-8 h-8 text-white transform group-hover:rotate-12 transition-transform duration-300" />
             </div>
-            <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 animate-pulse"></div>
+            {/* Online indicator */}
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-3 border-white dark:border-slate-900 flex items-center justify-center">
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+            </div>
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-              Assistant Logements
-              <Sparkles className="w-4 h-4 text-amber-400 fill-amber-400" />
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              Assistant CampusView
+              <Sparkles className="w-5 h-5 text-amber-400 fill-amber-400 animate-pulse" />
             </h2>
-            <p className="text-xs font-medium text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-              En ligne & prêt à vous aider
+            <p className="text-sm font-medium text-cyan-600 dark:text-cyan-400 flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+              </span>
+              IA propulsée • Prêt à vous aider
             </p>
+          </div>
+
+          {/* Quick stats badge */}
+          <div className="ml-auto hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50">
+            <Zap className="w-4 h-4 text-amber-500" />
+            <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">Réponse instantanée</span>
           </div>
         </div>
       </div>
 
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto pt-24 pb-4 px-4 sm:px-6 scroll-smooth">
+      <div className="flex-1 overflow-y-auto py-6 px-4 sm:px-6 scroll-smooth relative z-10">
         <div className="max-w-4xl mx-auto space-y-6">
-          {messages.map((message) => (
+          {messages.map((message, index) => (
             <div
               key={message.id}
-              className={`flex gap-4 ${message.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+              className={`flex gap-4 animate-fadeInUp ${message.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+              style={{ animationDelay: `${index * 50}ms` }}
             >
               {/* Avatar */}
-              <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center shadow-sm ${
-                message.type === 'bot'
-                  ? 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700'
-                  : 'bg-indigo-600'
-              }`}>
+              <div className={`flex-shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 ${message.type === 'bot'
+                ? 'bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 border border-slate-200 dark:border-slate-600'
+                : 'bg-gradient-to-br from-cyan-500 to-indigo-600'
+                }`}>
                 {message.type === 'bot' ? (
-                  <Bot className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                  <Bot className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
                 ) : (
                   <User className="w-6 h-6 text-white" />
                 )}
@@ -151,32 +174,43 @@ const Chatbot = () => {
 
               {/* Message Bubble */}
               <div className={`flex flex-col max-w-[75%] ${message.type === 'user' ? 'items-end' : 'items-start'}`}>
-                <div className={`px-5 py-3.5 shadow-sm text-[15px] leading-relaxed ${
-                  message.type === 'bot'
-                    ? message.isError 
-                      ? 'bg-red-50 dark:bg-red-900/20 text-red-600 border border-red-100 dark:border-red-800 rounded-2xl rounded-tl-none'
-                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-100 dark:border-slate-700 rounded-2xl rounded-tl-none'
-                    : 'bg-indigo-600 text-white rounded-2xl rounded-tr-none shadow-indigo-500/20'
-                }`}>
-                  <p className="whitespace-pre-wrap">{message.text}</p>
+                <div className={`relative px-5 py-4 text-[15px] leading-relaxed transition-all duration-300 hover:shadow-lg ${message.type === 'bot'
+                  ? message.isError
+                    ? 'bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 rounded-2xl rounded-tl-sm'
+                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-2xl rounded-tl-sm'
+                  : 'bg-gradient-to-br from-cyan-500 to-indigo-600 text-white rounded-2xl rounded-tr-sm shadow-lg shadow-indigo-500/25'
+                  }`}>
+                  {/* Decorative corner for bot messages */}
+                  {message.type === 'bot' && !message.isError && (
+                    <div className="absolute top-3 right-3 w-8 h-8 bg-gradient-to-br from-cyan-500/10 to-purple-500/10 rounded-full blur-md" />
+                  )}
+                  <p className="whitespace-pre-wrap relative z-10">{message.text}</p>
                 </div>
-                <span className="text-[11px] font-medium text-slate-400 mt-1.5 px-1">
+                <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-2 px-2 flex items-center gap-1">
                   {formatTime(message.timestamp)}
+                  {message.type === 'user' && (
+                    <svg className="w-3 h-3 text-cyan-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  )}
                 </span>
               </div>
             </div>
           ))}
 
-          {/* Loading Indicator */}
-          {isLoading && (
-            <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center shadow-sm">
-                <Bot className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+          {/* Typing Indicator */}
+          {isTyping && (
+            <div className="flex gap-4 animate-fadeIn">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 border border-slate-200 dark:border-slate-600 flex items-center justify-center shadow-lg">
+                <Bot className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
               </div>
-              <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl rounded-tl-none px-5 py-4 shadow-sm flex items-center gap-1.5">
-                <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl rounded-tl-sm px-6 py-4 flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 bg-gradient-to-r from-cyan-500 to-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-2.5 h-2.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-2.5 h-2.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+                <span className="text-sm text-slate-500 dark:text-slate-400 ml-2">L'assistant réfléchit...</span>
               </div>
             </div>
           )}
@@ -186,25 +220,31 @@ const Chatbot = () => {
       </div>
 
       {/* Footer Area */}
-      <div className="bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 px-4 py-4">
+      <div className="relative z-10 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 px-4 py-5">
         <div className="max-w-4xl mx-auto">
-          
-          {/* Suggestions */}
+
+          {/* Suggestions - Enhanced */}
           {messages.length === 1 && (
-            <div className="mb-4 animate-fade-in-up">
-              <div className="flex items-center gap-2 mb-3 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                <MessageSquare className="w-3 h-3" />
-                Suggestions rapides
+            <div className="mb-5 animate-fadeInUp">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Suggestions rapides</span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {suggestions.map((suggestion, index) => (
                   <button
                     key={index}
-                    onClick={() => handleSendMessage(suggestion)}
-                    className="text-left text-sm px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 border border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-800 text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-400 transition-all duration-200 group"
+                    onClick={() => handleSendMessage(suggestion.text)}
+                    className="group flex items-center gap-3 text-left text-sm px-4 py-3.5 rounded-xl bg-white dark:bg-slate-800/50 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-indigo-50 dark:hover:from-cyan-900/20 dark:hover:to-indigo-900/20 border border-slate-200 dark:border-slate-700 hover:border-cyan-300 dark:hover:border-cyan-700 text-slate-600 dark:text-slate-300 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
+                    style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    <span className="group-hover:translate-x-1 transition-transform duration-200 inline-block">
-                      {suggestion}
+                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 group-hover:from-cyan-500 group-hover:to-indigo-500 flex items-center justify-center transition-all duration-300">
+                      <suggestion.icon className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-white transition-colors duration-300" />
+                    </div>
+                    <span className="group-hover:text-cyan-700 dark:group-hover:text-cyan-400 transition-colors duration-300">
+                      {suggestion.text}
                     </span>
                   </button>
                 ))}
@@ -212,41 +252,52 @@ const Chatbot = () => {
             </div>
           )}
 
-          {/* Input Bar Unifiée (Design Symétrique) */}
-          <div className="relative flex items-end gap-2 bg-slate-100 dark:bg-slate-900 p-2 rounded-3xl border border-transparent focus-within:border-indigo-300 dark:focus-within:border-indigo-700 focus-within:ring-4 focus-within:ring-indigo-100 dark:focus-within:ring-indigo-900/30 transition-all duration-300">
-            
-            <textarea
-              ref={textareaRef}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Posez votre question sur les logements..."
-              rows="1"
-              disabled={isLoading}
-              className="w-full max-h-[120px] py-3 px-4 bg-transparent border-none focus:ring-0 resize-none text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 text-[15px]"
-            />
+          {/* Input Bar - Premium Design */}
+          <div className="relative">
+            {/* Glow effect on focus */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-3xl blur-lg opacity-0 focus-within:opacity-20 transition-opacity duration-500" />
 
-            <button
-              onClick={() => handleSendMessage()}
-              disabled={!inputValue.trim() || isLoading}
-              className={`
-                flex-shrink-0 mb-1 mr-1 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300
-                ${!inputValue.trim() || isLoading 
-                  ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed' 
-                  : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg hover:scale-105 active:scale-95'}
-              `}
-            >
-              {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Send className={`w-5 h-5 ${inputValue.trim() ? 'ml-0.5' : ''}`} />
-              )}
-            </button>
+            <div className="relative flex items-end gap-3 bg-white dark:bg-slate-800/80 backdrop-blur-sm p-2 rounded-2xl border border-slate-200 dark:border-slate-700 focus-within:border-cyan-400 dark:focus-within:border-cyan-600 shadow-lg transition-all duration-300">
+
+              <textarea
+                ref={textareaRef}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Posez votre question sur les logements..."
+                rows="1"
+                disabled={isLoading}
+                className="w-full max-h-[120px] py-3 px-4 bg-transparent border-none focus:ring-0 focus:outline-none resize-none text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 text-[15px]"
+              />
+
+              <button
+                onClick={() => handleSendMessage()}
+                disabled={!inputValue.trim() || isLoading}
+                className={`
+                  flex-shrink-0 mb-1 mr-1 w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300
+                  ${!inputValue.trim() || isLoading
+                    ? 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed'
+                    : 'bg-gradient-to-br from-cyan-500 to-indigo-600 hover:from-cyan-600 hover:to-indigo-700 text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-105 active:scale-95'}
+                `}
+              >
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
-          
-          <p className="text-[11px] text-slate-400 dark:text-slate-600 mt-3 text-center font-medium">
-            L'IA peut faire des erreurs. Vérifiez les informations importantes.
-          </p>
+
+          {/* Footer note */}
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/50">
+              <Sparkles className="w-3 h-3 text-amber-500" />
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                Propulsé par l'IA • Les réponses peuvent varier
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
