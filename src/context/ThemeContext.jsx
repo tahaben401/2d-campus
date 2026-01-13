@@ -10,14 +10,28 @@ export const ThemeProvider = ({ children }) => {
   useEffect(() => {
     const root = window.document.documentElement; 
 
-    root.classList.remove(theme === 'dark' ? 'light' : 'dark');
-    root.classList.add(theme);
+    // Supprimer toutes les classes de thème
+    root.classList.remove('light', 'dark');
+    
+    // Ajouter la classe correspondant au thème
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.add('light');
+    }
+
+    console.log('Classes appliquées sur <html>:', root.className);
+    console.log('Thème stocké dans localStorage:', theme);
 
     localStorage.setItem('theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+    setTheme(prevTheme => {
+      const newTheme = prevTheme === 'light' ? 'dark' : 'light';
+      console.log('Changement de thème:', prevTheme, '->', newTheme);
+      return newTheme;
+    });
   };
 
   return (
