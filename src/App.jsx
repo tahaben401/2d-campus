@@ -4,9 +4,9 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import CampusMapView from './components/CampusMapView';
 import StatisticsDashboard from './components/StatisticsDashboard';
-import Chatbot from './components/chatbot'; // ✅ Import du chatbot
-import Login from './pages/login';
-import Signup from './pages/sigup';
+import Chatbot from './components/Chatbot'; // ✅ Import du chatbot
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 import { mockBuildings } from './data/mockData';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import axios from "axios";
@@ -37,7 +37,7 @@ function App() {
         const userData = { email };
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));
-        console.log("✅ Logged in:", res.data.message);
+        // Logged in
         toast.success('Connecté avec succès !');
       } else {
         console.error("❌", res.data.message);
@@ -62,7 +62,7 @@ function App() {
         const userData = { fullName, email };
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));
-        console.log(" Registered:", res.data.message);
+        // Registered
         toast.success("Inscription réussie !");
       } else {
         console.error("❌", res.data.message);
